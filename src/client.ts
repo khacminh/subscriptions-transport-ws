@@ -66,6 +66,7 @@ export interface ClientOptions {
   connectionCallback?: (error: Error[], result?: any) => void;
   lazy?: boolean;
   inactivityTimeout?: number;
+  keepAlive: number;
 }
 
 export class SubscriptionClient {
@@ -89,6 +90,7 @@ export class SubscriptionClient {
   private wsImpl: any;
   private wsProtocols: string | string[];
   private wasKeepAliveReceived: boolean;
+  private keepAlive: number;
   private tryReconnectTimeoutId: any;
   private checkConnectionIntervalId: any;
   private maxConnectTimeoutId: any;
@@ -109,6 +111,7 @@ export class SubscriptionClient {
       reconnectionAttempts = Infinity,
       lazy = false,
       inactivityTimeout = 0,
+      keepAlive = 5000,
     } = (options || {});
 
     this.wsImpl = webSocketImpl || NativeWebSocket;
@@ -121,6 +124,7 @@ export class SubscriptionClient {
     this.url = url;
     this.operations = {};
     this.nextOperationId = 0;
+    this.keepAlive = keepAlive;
     this.wsTimeout = timeout;
     this.unsentMessagesQueue = [];
     this.reconnect = reconnect;
@@ -329,6 +333,15 @@ export class SubscriptionClient {
         handler(this.formatErrors(error));
       });
 
+      if (this.keepAlive) {
+        const keepAliveTimer = setInterval(() => {
+          if (this.status === this.wsImpl.OPEN) {
+            this.sendKeepAlive();
+          } else {
+            clearInterval(keepAliveTimer);
+          }
+        }, this.keepAlive);
+      }
     return opId;
   }
 
@@ -483,6 +496,10 @@ export class SubscriptionClient {
             'is already closed. Message was: ' + JSON.stringify(message)));
         }
     }
+  }
+
+  private sendKeepAlive(): void {
+      this.sendMessage(undefined, MessageTypes.GQL_CONNECTION_KEEP_ALIVE, undefined);
   }
 
   private generateOperationId(): string {

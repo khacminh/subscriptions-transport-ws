@@ -40,6 +40,7 @@ export type ConnectionContext = {
   operations: {
     [opId: string]: ExecutionIterator,
   },
+  kaTimer: any,
 };
 
 export interface OperationMessagePayload {
@@ -156,6 +157,7 @@ export class SubscriptionServer {
       connectionContext.socket = socket;
       connectionContext.request = request;
       connectionContext.operations = {};
+      connectionContext.kaTimer = undefined;
 
       const connectionClosedHandler = (error: any) => {
         if (error) {
@@ -436,6 +438,16 @@ export class SubscriptionServer {
         case MessageTypes.GQL_STOP:
           // Find subscription id. Call unsubscribe.
           this.unsubscribe(connectionContext, opId);
+          break;
+
+        case MessageTypes.GQL_CONNECTION_KEEP_ALIVE:
+          if (connectionContext.kaTimer) {
+            clearInterval(connectionContext.kaTimer);
+            connectionContext.kaTimer = null;
+          }
+          connectionContext.kaTimer = setTimeout(() => {
+            connectionContext.socket.close();
+          }, 20000);
           break;
 
         default:

@@ -296,6 +296,7 @@ describe('Client', function () {
     const client = new SubscriptionClient(`ws://localhost:${RAW_TEST_PORT}/`, {
       reconnect: true,
       reconnectionAttempts: 1,
+      keepAlive: 5000,
     });
 
     client.request({
@@ -362,6 +363,7 @@ describe('Client', function () {
       connectionCallback: () => {
         client.client.close();
       },
+      keepAlive: 5000,
     });
 
     const unregister = client.onDisconnected(() => {
@@ -377,6 +379,7 @@ describe('Client', function () {
       connectionCallback: () => {
         client.client.close();
       },
+      keepAlive: 5000,
     });
 
     const unregister = client.onReconnected(() => {
@@ -415,6 +418,7 @@ describe('Client', function () {
       connectionCallback: () => {
         client.client.close();
       },
+      keepAlive: 5000,
     });
 
     const unregister = client.onDisconnected(() => {
@@ -430,6 +434,7 @@ describe('Client', function () {
       connectionCallback: () => {
         client.client.close();
       },
+      keepAlive: 5000,
     });
     const onReconnectingSpy = sinon.spy();
     const unregisterOnReconnecting = client.onReconnecting(onReconnectingSpy);
@@ -449,6 +454,7 @@ describe('Client', function () {
       connectionCallback: () => {
         subscriptionsClient.client.close();
       },
+      keepAlive: 5000,
     });
     const onReconnectedSpy = sinon.spy();
     const unregisterOnReconnected = subscriptionsClient.onReconnected(onReconnectedSpy);
@@ -560,6 +566,7 @@ describe('Client', function () {
 
     new SubscriptionClient(`ws://localhost:${RAW_TEST_PORT}/`, {
       connectionParams: connectionParams,
+      keepAlive: 5000,
     });
   });
 
@@ -581,6 +588,7 @@ describe('Client', function () {
           resolve(connectionParams);
         }, 100);
       }),
+      keepAlive: 5000,
     });
   });
 
@@ -602,6 +610,7 @@ describe('Client', function () {
           resolve(connectionParams);
         }, 100);
       }),
+      keepAlive: 5000,
     });
   });
 
@@ -622,6 +631,7 @@ describe('Client', function () {
           reject(error);
         }, 100);
       }),
+      keepAlive: 5000,
     });
   });
 
@@ -692,6 +702,7 @@ describe('Client', function () {
         expect(error.message).to.equals('test error');
         done();
       },
+      keepAlive: 5000,
     });
   });
 
@@ -729,6 +740,7 @@ describe('Client', function () {
         expect(error).to.equals(undefined);
         done();
       },
+      keepAlive: 5000,
     });
   });
 
@@ -880,6 +892,7 @@ describe('Client', function () {
   it('should not connect until subscribe is called if lazy mode', (done) => {
     const client: SubscriptionClient = new SubscriptionClient(`ws://localhost:${RAW_TEST_PORT}/`, {
       lazy: true,
+      keepAlive: 5000,
     });
     expect(client.client).to.be.null;
 
@@ -924,6 +937,7 @@ describe('Client', function () {
     const client: SubscriptionClient = new SubscriptionClient(`ws://localhost:${RAW_TEST_PORT}/`, {
       lazy: true,
       connectionParams,
+      keepAlive: 5000,
     });
 
     let isDone = false
@@ -994,7 +1008,7 @@ describe('Client', function () {
         done();
       }
     });
-    client = new SubscriptionClient(`ws://localhost:${RAW_TEST_PORT}/`, { reconnect: true });
+    client = new SubscriptionClient(`ws://localhost:${RAW_TEST_PORT}/`, { reconnect: true, keepAlive: 5000 });
     originalClient = client.client;
   });
 
@@ -1016,7 +1030,7 @@ describe('Client', function () {
         }
       });
     });
-    client = new SubscriptionClient(`ws://localhost:${RAW_TEST_PORT}/`, { reconnect: true });
+    client = new SubscriptionClient(`ws://localhost:${RAW_TEST_PORT}/`, { reconnect: true, keepAlive: 5000 });
 
     sub = client.request({
       query: `
@@ -1061,6 +1075,7 @@ describe('Client', function () {
       timeout: 500,
       reconnect: true,
       reconnectionAttempts: 2,
+      keepAlive: 5000,
     });
     subscriptionsClient.onError((error) => {
       expect(error.message).to.contain('A message was not sent');
@@ -1080,6 +1095,7 @@ describe('Client', function () {
       timeout: 500,
       reconnect: true,
       reconnectionAttempts: 2,
+      keepAlive: 5000,
     });
     const connectSpy = sinon.spy(subscriptionsClient as any, 'connect');
     wsServer.on('connection', (connection: any) => {
@@ -1103,6 +1119,7 @@ describe('Client', function () {
       timeout: 500,
       reconnect: true,
       reconnectionAttempts: 2,
+      keepAlive: 5000,
     });
     const connectSpy = sinon.spy(subscriptionsClient as any, 'connect');
     let connections = 0;
@@ -1129,7 +1146,7 @@ describe('Client', function () {
   it('should take care of received keep alive', (done) => {
     let wasKAReceived = false;
 
-    const subscriptionsClient = new SubscriptionClient(`ws://localhost:${KEEP_ALIVE_TEST_PORT}/`, { timeout: 600 });
+    const subscriptionsClient = new SubscriptionClient(`ws://localhost:${KEEP_ALIVE_TEST_PORT}/`, { timeout: 600, keepAlive: 5000 });
     const originalOnMessage = subscriptionsClient.client.onmessage;
     subscriptionsClient.client.onmessage = (dataReceived: any) => {
       let receivedDataParsed = JSON.parse(dataReceived.data);
@@ -1151,7 +1168,7 @@ describe('Client', function () {
   it('should correctly clear timeout if receives ka too early', (done) => {
     let receivedKeepAlive = 0;
 
-    const subscriptionsClient = new SubscriptionClient(`ws://localhost:${KEEP_ALIVE_TEST_PORT}/`, { timeout: 600 });
+    const subscriptionsClient = new SubscriptionClient(`ws://localhost:${KEEP_ALIVE_TEST_PORT}/`, { timeout: 600, keepAlive: 5000 });
     const checkConnectionSpy = sinon.spy(subscriptionsClient as any, 'checkConnection');
     const originalOnMessage = subscriptionsClient.client.onmessage;
     subscriptionsClient.client.onmessage = (dataReceived: any) => {
@@ -1221,6 +1238,7 @@ describe('Client', function () {
     const subscriptionsClient = new SubscriptionClient(`ws://localhost:${RAW_TEST_PORT}/`, {
       reconnect: true,
       reconnectionAttempts: 1,
+      keepAlive: 5000,
     });
     const tryReconnectSpy = sinon.spy(subscriptionsClient as any, 'tryReconnect');
     let receivedConnecitonTerminate = false;
@@ -1259,6 +1277,7 @@ describe('Client', function () {
     const subscriptionsClient = new SubscriptionClient(`ws://localhost:${RAW_TEST_PORT}/`, {
       reconnect: true,
       reconnectionAttempts: 1,
+      keepAlive: 5000,
     });
     const tryReconnectSpy = sinon.spy(subscriptionsClient as any, 'tryReconnect');
     let receivedConnecitonTerminate = false;
@@ -1296,6 +1315,7 @@ describe('Client', function () {
   it('should close the connection after inactivityTimeout and zero active subscriptions', function (done) {
     const subscriptionsClient = new SubscriptionClient(`ws://localhost:${RAW_TEST_PORT}/`, {
       inactivityTimeout: 100,
+      keepAlive: 5000,
     });
     const sub = subscriptionsClient.request({
       query: `subscription useInfo($id: String) {
@@ -1328,7 +1348,7 @@ describe('Client', function () {
 
     for (const testCase of testCases) {
       const mockWebSocket = sinon.spy();
-      new SubscriptionClient(`ws://localhost:${TEST_PORT}`, {}, mockWebSocket, testCase);
+      new SubscriptionClient(`ws://localhost:${TEST_PORT}`, {keepAlive: 5000}, mockWebSocket, testCase);
       expect(mockWebSocket.calledOnce).to.be.true;
       expect(mockWebSocket.firstCall.args[1]).to.equal(testCase);
     }
@@ -1662,6 +1682,7 @@ describe('Server', function () {
 
     new SubscriptionClient(`ws://localhost:${EVENTS_TEST_PORT}/`, {
       connectionParams: connectionParams,
+      keepAlive: 5000,
     });
 
     setTimeout(() => {
@@ -1687,6 +1708,7 @@ describe('Server', function () {
     onConnectErrorOptions.isLegacy = false;
     const subscriptionsClient = new SubscriptionClient(`ws://localhost:${ONCONNECT_ERROR_TEST_PORT}/`, {
       connectionCallback: connectionCallbackSpy,
+      keepAlive: 5000,
     });
 
     setTimeout(() => {
@@ -1703,6 +1725,7 @@ describe('Server', function () {
     onConnectErrorOptions.isLegacy = true;
     const subscriptionsClient = new SubscriptionClient(`ws://localhost:${ONCONNECT_ERROR_TEST_PORT}/`, {
       connectionCallback: connectionCallbackSpy,
+      keepAlive: 5000,
     });
 
     const originalOnMessage = subscriptionsClient.client.onmessage;
@@ -2247,6 +2270,7 @@ describe('Client<->Server Flow', () => {
 
     const client = new SubscriptionClient(`ws://localhost:${SERVER_EXECUTOR_TESTS_PORT}/`, {
       inactivityTimeout: 100,
+      keepAlive: 5000,
     });
     let isFirstTime = true;
 
@@ -2624,7 +2648,7 @@ describe('Client<->Server Flow', () => {
       customServer,
     );
 
-    const client = new SubscriptionClient(`ws://localhost:${CUSTOM_PORT}`, {},
+    const client = new SubscriptionClient(`ws://localhost:${CUSTOM_PORT}`, {keepAlive: 5000},
       MockWebSocket,
     );
 
